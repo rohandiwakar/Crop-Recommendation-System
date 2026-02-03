@@ -25,9 +25,11 @@ The system helps farmers and agriculture enthusiasts make **data-driven decision
   - NumPy
   - Pandas
   - Scikit-learn
-  - Matplotlib / Seaborn
+  - Matplotlib 
 - **Machine Learning Algorithm:**  
-  - Random Forest Classifier 
+  - Random Forest Classifier
+- **Tools Used**
+  - PyCharm (IDE)
 
 ---
 
@@ -67,11 +69,18 @@ git clone https://github.com/your-username/crop-recommendation-system.git
 ```bash
 cd crop-recommendation-system
 ```
+
 ### 3️⃣ Install Required Libraries
 ```bash
-pip install -r requirements.txt
+pip install numpy pandas matplotlib scikit-learn
 ```
+
 ### 4️⃣ Run the Project
 ```bash
 python app.py
+```
+
+## 🛠️ Tools Used
+```bash
+  PyCharm (IDE)
 ```
