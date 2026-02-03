@@ -27,7 +27,7 @@ The system helps farmers and agriculture enthusiasts make **data-driven decision
   - Scikit-learn
   - Matplotlib / Seaborn
 - **Machine Learning Algorithm:**  
-  - Random Forest Classifier *(or mention your exact model if different)*
+  - Random Forest Classifier 
 
 ---
 
