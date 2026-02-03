@@ -62,6 +62,15 @@ The dataset contains agricultural data with the following features:
 ### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/your-username/crop-recommendation-system.git
+
+### 2️⃣ Go to Project Directory
+```bash
 cd crop-recommendation-system
+
+### 3️⃣ Install Required Libraries
+```bash
 pip install -r requirements.txt
+
+### 4️⃣ Run the Project
+```bash
 python app.py
