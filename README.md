@@ -77,7 +77,7 @@ pip install numpy pandas matplotlib scikit-learn
 
 ### 4️⃣ Run the Project
 ```bash
-python app.py
+streamlit run app.py
 ```
 
 ## 🛠️ Tools Used
