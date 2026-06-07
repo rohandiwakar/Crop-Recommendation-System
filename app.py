@@ -95,6 +95,31 @@ def climate_score(values):
     return max((humidity_score + temperature_score + rainfall_score) / 3, 0)
 
 
+def show_ranked_matches(probabilities):
+    top_predictions = probabilities.head(5).copy()
+    top_predictions["Confidence"] = top_predictions["Confidence"] * 100
+
+    for _, row in top_predictions.iterrows():
+        confidence = float(row["Confidence"])
+        label_col, value_col = st.columns([0.7, 0.3])
+        label_col.write(row["Crop"].title())
+        value_col.write(f"{confidence:.1f}%")
+        st.progress(min(confidence / 100, 1.0))
+
+    return float(top_predictions.iloc[0]["Confidence"])
+
+
+def show_input_profile(profile_df):
+    max_value = max(float(profile_df["Value"].max()), 1.0)
+
+    for _, row in profile_df.iterrows():
+        value = float(row["Value"])
+        label_col, value_col = st.columns([0.7, 0.3])
+        label_col.write(row["Feature"])
+        value_col.write(f"{value:.1f}")
+        st.progress(min(value / max_value, 1.0))
+
+
 st.set_page_config(
     page_title="Smart Crop Recommendation",
     page_icon="🌾",
@@ -250,17 +275,9 @@ with input_tab:
 
             with chart_col:
                 if probabilities is not None:
-                    top_predictions = probabilities.head(5).copy()
-                    top_predictions["Confidence"] = top_predictions["Confidence"] * 100
                     st.subheader("Top Crop Matches")
-                    st.bar_chart(
-                        top_predictions.set_index("Crop"),
-                        y="Confidence",
-                        color="#2e7d32",
-                    )
-                    st.caption(
-                        f"Best match confidence: {top_predictions.iloc[0]['Confidence']:.1f}%"
-                    )
+                    best_confidence = show_ranked_matches(probabilities)
+                    st.caption(f"Best match confidence: {best_confidence:.1f}%")
                 else:
                     st.info("This model does not expose probability scores.")
 
@@ -310,7 +327,7 @@ with insight_tab:
             ],
         }
     )
-    st.bar_chart(profile_df.set_index("Feature"), y="Value", color="#0369a1")
+    show_input_profile(profile_df)
 
     st.info(
         "Use the preset selector to compare different field conditions, then adjust sliders to see how the profile changes."
