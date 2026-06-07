@@ -95,6 +95,30 @@ def climate_score(values):
     return max((humidity_score + temperature_score + rainfall_score) / 3, 0)
 
 
+def condition_label(score):
+    if score >= 0.78:
+        return "Excellent"
+    if score >= 0.55:
+        return "Good"
+    return "Needs tuning"
+
+
+def ph_category(ph):
+    if 6 <= ph <= 7.5:
+        return "Neutral"
+    if ph < 6:
+        return "Acidic"
+    return "Alkaline"
+
+
+def rainfall_category(rainfall):
+    if rainfall >= 180:
+        return "Heavy"
+    if rainfall >= 80:
+        return "Moderate"
+    return "Low"
+
+
 def show_ranked_matches(probabilities):
     top_predictions = probabilities.head(5).copy()
     top_predictions["Confidence"] = top_predictions["Confidence"] * 100
@@ -135,28 +159,63 @@ st.markdown(
             max-width: 1180px;
         }
 
+        .stApp {
+            background:
+                linear-gradient(180deg, rgba(247, 251, 246, 0.9), rgba(239, 247, 241, 0.96)),
+                url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1800&q=80");
+            background-size: 120% auto;
+            background-position: center top;
+            animation: field-pan 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes field-pan {
+            from { background-position: center top; }
+            to { background-position: center 8%; }
+        }
+
         .hero {
             padding: 28px 30px;
             border-radius: 8px;
             background:
-                linear-gradient(135deg, rgba(46, 125, 50, 0.92), rgba(3, 105, 161, 0.86)),
+                linear-gradient(135deg, rgba(27, 94, 32, 0.92), rgba(3, 105, 161, 0.84)),
                 url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80");
             background-size: cover;
             background-position: center;
             color: white;
             margin-bottom: 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 14px 38px rgba(15, 23, 42, 0.16);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.18) 48%, transparent 70%);
+            transform: translateX(-80%);
+            animation: hero-sweep 8s ease-in-out infinite;
+        }
+
+        @keyframes hero-sweep {
+            0%, 55% { transform: translateX(-85%); }
+            100% { transform: translateX(85%); }
         }
 
         .hero h1 {
             margin: 0;
             font-size: 2.35rem;
             letter-spacing: 0;
+            position: relative;
+            z-index: 1;
         }
 
         .hero p {
             max-width: 680px;
             margin: 10px 0 0;
             font-size: 1.02rem;
+            position: relative;
+            z-index: 1;
         }
 
         .result-card {
@@ -184,6 +243,64 @@ st.markdown(
         .small-note {
             color: #52606d;
             font-size: 0.92rem;
+        }
+
+        .pulse-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 14px 0 20px;
+        }
+
+        .pulse-card {
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(46, 125, 50, 0.18);
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 8px 24px rgba(31, 41, 51, 0.08);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .pulse-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(31, 41, 51, 0.13);
+        }
+
+        .pulse-label {
+            color: #52606d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .pulse-value {
+            color: #1f2933;
+            font-size: 1.35rem;
+            font-weight: 750;
+            margin-top: 4px;
+        }
+
+        div[data-testid="stMetric"] {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(3, 105, 161, 0.14);
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: 0 6px 20px rgba(31, 41, 51, 0.06);
+        }
+
+        div.stButton > button {
+            transition: transform 140ms ease, box-shadow 140ms ease;
+        }
+
+        div.stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(46, 125, 50, 0.2);
+        }
+
+        @media (max-width: 800px) {
+            .pulse-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     """,
@@ -249,12 +366,33 @@ with input_tab:
         st.subheader("Field Snapshot")
         st.metric("NPK Total", f"{nitrogen + phosphorus + potassium:.0f}")
         st.metric("Climate Score", f"{climate_score(values) * 100:.0f}%")
-        st.metric("pH Category", "Neutral" if 6 <= ph <= 7.5 else "Needs review")
+        st.metric("pH Category", ph_category(ph))
+        auto_predict = st.toggle("Auto recommend while sliding", value=False)
         predict_clicked = st.button(
             "Recommend Best Crop", type="primary", use_container_width=True
         )
 
-    if predict_clicked:
+    st.markdown(
+        f"""
+        <div class="pulse-grid">
+            <div class="pulse-card">
+                <div class="pulse-label">Nutrient readiness</div>
+                <div class="pulse-value">{condition_label(nutrient_score(values))}</div>
+            </div>
+            <div class="pulse-card">
+                <div class="pulse-label">Climate condition</div>
+                <div class="pulse-value">{condition_label(climate_score(values))}</div>
+            </div>
+            <div class="pulse-card">
+                <div class="pulse-label">Rainfall pattern</div>
+                <div class="pulse-value">{rainfall_category(rainfall)}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if predict_clicked or auto_predict:
         try:
             result, probabilities = predict_crop(values)
 
