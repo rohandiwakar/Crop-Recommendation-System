@@ -46,4 +46,4 @@ streamlit run app.py
 - Keep the live app URL in your resume or project portfolio.
 - Show that the app uses a complete ML workflow: data preprocessing, label encoding, model training, saved pipeline, and web deployment.
 - Mention that `st.cache_resource` is used so the model loads efficiently in production.
-- Mention that deployment uses Python 3.12 and scikit-learn 1.5.1 to match the saved model artifact.
+- Mention that deployment installs scikit-learn from `requirements.txt` so the saved model can load correctly.

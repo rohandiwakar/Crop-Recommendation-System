@@ -2,6 +2,7 @@ from pathlib import Path
 import pickle
 
 import numpy as np
+import sklearn
 import streamlit as st
 
 
@@ -44,6 +45,7 @@ with st.sidebar:
     st.write("Pipeline: StandardScaler + trained classifier")
     st.write("Inputs: N, P, K, temperature, humidity, pH, rainfall")
     st.write("Output: Recommended crop")
+    st.write(f"scikit-learn: {sklearn.__version__}")
 
 col1, col2, col3 = st.columns(3)
 
