@@ -9,6 +9,7 @@ import streamlit as st
 
 MODEL_PATH = Path(__file__).with_name("crop_pipeline.pkl")
 ENCODER_PATH = Path(__file__).with_name("label_encoder.pkl")
+VIDEO_URL = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4"
 
 PRESETS = {
     "Rice-ready field": {
@@ -153,39 +154,78 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
         .main .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+            min-height: calc(100vh - 48px);
+            margin: 1.5rem auto;
+            padding: 1.5rem;
             max-width: 1180px;
+            border-radius: 28px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.26);
+            backdrop-filter: blur(16px);
         }
 
         .stApp {
-            background:
-                linear-gradient(180deg, rgba(247, 251, 246, 0.9), rgba(239, 247, 241, 0.96)),
-                url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1800&q=80");
-            background-size: 120% auto;
-            background-position: center top;
-            animation: field-pan 22s ease-in-out infinite alternate;
+            background: #ffffff;
         }
 
-        @keyframes field-pan {
-            from { background-position: center top; }
-            to { background-position: center 8%; }
+        .video-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .video-backdrop video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(1.08) contrast(1.04);
+        }
+
+        .video-backdrop::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(180deg, rgba(7, 19, 12, 0.18), rgba(247, 251, 246, 0.68)),
+                radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.22), transparent 28%),
+                radial-gradient(circle at 80% 12%, rgba(3, 105, 161, 0.18), transparent 30%);
+        }
+
+        .main,
+        header,
+        section[data-testid="stSidebar"] {
+            position: relative;
+            z-index: 1;
+        }
+
+        section[data-testid="stSidebar"] {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
         }
 
         .hero {
             padding: 28px 30px;
-            border-radius: 8px;
+            border-radius: 22px;
             background:
-                linear-gradient(135deg, rgba(27, 94, 32, 0.92), rgba(3, 105, 161, 0.84)),
-                url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80");
-            background-size: cover;
-            background-position: center;
+                linear-gradient(135deg, rgba(17, 24, 39, 0.82), rgba(27, 94, 32, 0.62)),
+                rgba(255, 255, 255, 0.08);
             color: white;
             margin-bottom: 22px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 14px 38px rgba(15, 23, 42, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.22);
         }
 
         .hero::after {
@@ -208,6 +248,7 @@ st.markdown(
             letter-spacing: 0;
             position: relative;
             z-index: 1;
+            max-width: 760px;
         }
 
         .hero p {
@@ -216,6 +257,46 @@ st.markdown(
             font-size: 1.02rem;
             position: relative;
             z-index: 1;
+        }
+
+        .serif-accent {
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .about-strip {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 0 0 22px;
+        }
+
+        .about-item {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.74);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 8px 24px rgba(31, 41, 51, 0.08);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .about-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(31, 41, 51, 0.13);
+        }
+
+        .about-kicker {
+            color: #52606d;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .about-text {
+            color: #1f2933;
+            margin-top: 4px;
+            font-weight: 650;
         }
 
         .result-card {
@@ -298,6 +379,17 @@ st.markdown(
         }
 
         @media (max-width: 800px) {
+            .main .block-container {
+                margin: 0.75rem;
+                padding: 1rem;
+                min-height: calc(100vh - 24px);
+                border-radius: 22px;
+            }
+
+            .about-strip {
+                grid-template-columns: 1fr;
+            }
+
             .pulse-grid {
                 grid-template-columns: 1fr;
             }
@@ -308,13 +400,44 @@ st.markdown(
 )
 
 st.markdown(
+    f"""
+    <div class="video-backdrop">
+        <video autoplay muted loop playsinline>
+            <source src="{VIDEO_URL}" type="video/mp4">
+        </video>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
     """
     <section class="hero">
-        <h1>Smart Crop Recommendation System</h1>
+        <h1>Smart Crop Recommendation System for <span class="serif-accent">smarter farming</span></h1>
         <p>
-            Explore soil nutrients, climate values, and pH levels to generate an
-            ML-powered crop recommendation with confidence scores.
+            A clean machine learning demo that turns soil nutrients, climate values,
+            and pH levels into a crop recommendation with confidence scores.
         </p>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <section class="about-strip">
+        <div class="about-item">
+            <div class="about-kicker">Project</div>
+            <div class="about-text">End-to-end ML model deployed as a live web app</div>
+        </div>
+        <div class="about-item">
+            <div class="about-kicker">Built With</div>
+            <div class="about-text">Streamlit, scikit-learn, NumPy, pandas</div>
+        </div>
+        <div class="about-item">
+            <div class="about-kicker">Demo Value</div>
+            <div class="about-text">Interactive inputs, live insights, and crop confidence</div>
+        </div>
     </section>
     """,
     unsafe_allow_html=True,
